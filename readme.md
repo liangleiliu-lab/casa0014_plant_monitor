@@ -1,4 +1,4 @@
-# casa0017 plant monitor 
+# casa0014 plant monitor 
 ## overview
 The goal of this project is to build a sensor system that can sense air temperature and humidity and soil moisture. The data will be transmitted to the mqtt server via WiFi. The data is also stored in IfluxDB deployed on a Raspberry Pi, and we visualise the data using Telegraf, and Grafana, also deployed on a Raspberry Pi.
 ## Method
@@ -51,3 +51,66 @@ Below are its schematic and physical diagrams respectively.![1](https://github.c
 ![2](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/assets/b11ade06aab599456bee00bb285c494.jpg)
 The code for the testing of this nail-type moisture sensor can be found [here](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/code/moisture_test.ino). The fact that the data we get from our measurements are purely resistance values, we need to plot **the corresponding calibration curves** to be able to accurately judge the moisture content of the soil.
 ### ESP send soil and air data to MQTT
+What we need to do in this step is to integrate the previous parts. That is, we use the nail sensor and the DHT22 to get the soil moisture and air temperature and humidity, and then send this data to the MQTT server in real time. the final code can be found [here](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/code/plant_monitor.ino).
+Below is a picture of the product actually deployed to Rosemary.
+![deployment](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/assets/03d43b0d0a397ae610a3039da38cb52.jpg)
+At this point we will be able to see the data sent to the MQTT server.
+![mqtt](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/assets/02488f957b68e0e9c9b69410a0aff57.png)
+## Data visualization
+We will use a Raspberry Pi as a gateway. First we will initialise the Raspberry Pi while connecting to your Raspberry Pi via SSH.
+We then install [influxDB](https://portal.influxdata.com/downloads/#influxdb) on the Raspberry Pi, which allows us to download and store the data placed on the MQTT server.
+**the installation process is as follows**
+1. Add the InfluxDB key to ensure secure download and the repository to the sources list so that we can download it in the next step.
+``` C++ 
+wget -q https://repos.influxdata.com/influxdata-archive_compat.key
+echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
+echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
+```
+2. With the repository added we now run another update to the package list
+```
+sudo apt-get update
+```
+3. Finally we install InfluxDB
+```
+sudo apt-get install influxdb2 -y
+This should result in an output similar to that in the image below:
+```
+Finally to get InfluxDB up and running at reboot we need to enable and start it within systemctl:
+``` 
+sudo systemctl unmask influxdb.service
+sudo systemctl start influxdb
+sudo systemctl enable influxdb.service
+```
+You can check if it is running ok with:
+```
+sudo systemctl status influxdb
+```
+Use to break out of the systemctl command and get back to the terminal prompt.CTRL C
+
+We now be able to browse to your instance of InfluxDB running on machine - in my case I browse to `http://stdu-pi-ucfnll0.celab:8086/`
+
+### installing Telegraf on RPi
+Telegraf is a time-series data collector - lots of information is available [here](https://docs.influxdata.com/telegraf/v1.24/). 
+Get back to the terminal on the RPi and install telegraf using the following command:
+
+```
+sudo apt-get update && sudo apt-get install telegraf -y
+```
+Step 2
+Telegraf has lots of configuration options - the default file can be viewed at:
+
+```
+cat /etc/telegraf/telegraf.conf
+```
+To get started we will use a minimal CE setup so that you can see the basic elements of a [configuration](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/configuration/Telegraf%20configuration). But first we will explore data from the RPi template we installed in the previous step to see how the telegraf scripts work. Browse to and select.
+
+After setting up the profile, we can see the visualised data.
+![data](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/assets/e26d37c9b98c740a5a1e3127049f442.png)
+## TO DO list
+We need to measure the calibration curve of the nail moisture sensor under fixed conditions (temperature, soil, nail spacing).
+**Understanding soil moisture sensor calibration curves**
+Typically, readings from soil moisture sensors (such as resistance or capacitance based sensors) vary as soil moisture increases. The purpose of a calibration curve is to find the relationship between sensor readings and actual soil moisture content.
+**Steps to develop a calibration curve**
+1. Data collection: Collect sensor readings at different soil moisture contents.
+2. Data Analysis: Use the data points to plot the curve on a graph and fit the points with a mathematical model (e.g. linear or polynomial regression).
+3. Validation: Use the new data points to verify the accuracy of the calibration curve.
