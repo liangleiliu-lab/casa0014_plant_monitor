@@ -1,8 +1,18 @@
 # casa0014 plant monitor 
 ## overview
 The goal of this project is to build a sensor system that can sense air temperature and humidity and soil moisture. The data will be transmitted to the mqtt server via WiFi. The data is also stored in IfluxDB deployed on a Raspberry Pi, and we visualise the data using Telegraf, and Grafana, also deployed on a Raspberry Pi.
-## Method
-### Incremental build 
+## The plant I chose
+Rosemary's soil moisture is suitable to be kept within a certain range of values to ensure optimum growing conditions. The specific range of values is as follows:
+![deployment](https://github.com/liangleiliu-lab/casa0017_plant_monitor/blob/main/assets/03d43b0d0a397ae610a3039da38cb52.jpg)
+### Soil Moisture Ratio:
+Ideal soil moisture is usually maintained between 20 and 50 per cent. In this range, the soil is neither too dry nor too wet for rosemary.
+
+### Frequency of watering: 
+The frequency of watering depends on environmental conditions (e.g. temperature, humidity, light intensity, etc.) and soil type. As a rule, wait until the top layer of soil has dried to a depth of about 1-2 cm before watering. In hot, dry climates, this may mean watering 2-3 times a week; in cold or rainy climates, watering every fortnight or even longer is sufficient.
+
+### Soil moisture meter values:
+if using a soil moisture meter, keep the display between moderately dry and moderately wet and avoid reaching the over-wet mark.
+## Incremental build 
 This project uses an incremental development model. Different components are first developed and tested independently, and then gradually integrated into a system.
 Therefore the following will follow the actual development process.
 ## Developing process
