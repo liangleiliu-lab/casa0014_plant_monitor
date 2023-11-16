@@ -6,6 +6,8 @@
 #include <DHT_U.h>                      // Include the DHT Unified sensor library
 
 #define DHTTYPE DHT22                // Define the DHT sensor type. Here it is DHT 22 (AM2302, AM2321)
+const int dryValue = 800; // Sensor readings when completely dry
+const int wetValue = 300; // Sensor readings when completely wet
 
 // Sensors - DHT22 and Soil Moisture Sensor
 uint8_t DHTPin = 12;                   // DHT sensor is connected to Pin 12 of the Huzzah ESP8266
@@ -89,11 +91,16 @@ void readMoisture(){
   delay(100);                          // Wait for 100 milliseconds
   // read the value from the sensor:
   Moisture = analogRead(soilPin);      // Read the moisture level from the soil moisture sensor
+  MoisturePercent = map(Moisture, wetValue, dryValue, 100, 0);
+  MoisturePercent = constrain(MoisturePercent, 0, 100);
+
   digitalWrite(sensorVCC, LOW);        // Turn off the power to the moisture sensor
   digitalWrite(blueLED, HIGH);         // Turn on the blue LED
   delay(100);                          // Wait for 100 milliseconds
   Serial.print("Wet ");                
   Serial.println(Moisture);            // Print the moisture level to the serial monitor
+  Serial.print(" Moisture (%): ");
+  Serial.println(MoisturePercent);
 }
 
 void startWifi() {
